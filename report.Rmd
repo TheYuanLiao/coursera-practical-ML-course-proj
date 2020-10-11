@@ -57,12 +57,17 @@ After the screening of predictors in Section 2, the number of remaining predicto
 
 ```{r model, echo=TRUE}
 set.seed(666)
+
+lb <- createDataPartition(training$classe, p=0.7, list=FALSE)
+training_train <- training[lb, ]
+training_test <- training[-lb, ]
+
 train_control <- trainControl(method = "cv", number = 5)
 model_rf <- train(as.factor(classe) ~ .,
                   trControl = train_control,
                   preProcess = "pca",
                   method = "rf",
-                  data = training,
+                  data = training_train,
                   prx=TRUE)
 print(model_rf)
 
@@ -70,7 +75,7 @@ print(model_rf)
 Check the performance on the training set.
 
 ```{r confusionMatrix, echo=TRUE}
-confusionMatrix(predict(model_rf, training[, -53]), as.factor(training$classe))
+confusionMatrix(predict(model_rf, training_test[, -53]), as.factor(training_test$classe))
 
 ```
 

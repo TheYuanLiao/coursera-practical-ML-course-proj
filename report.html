@@ -423,12 +423,17 @@ training &lt;- training %&gt;%
 <p>The selected algorithm is Random forests.</p>
 <p>After the screening of predictors in Section 2, the number of remaining predictors is still large. To reduce the dimension of feature set, PCA analysis is implemented in this section. And the 5-fold cross-validation is implemented to the training process to avoid overfitting.</p>
 <pre class="r"><code>set.seed(666)
+
+lb &lt;- createDataPartition(training$classe, p=0.7, list=FALSE)
+training_train &lt;- training[lb, ]
+training_test &lt;- training[-lb, ]
+
 train_control &lt;- trainControl(method = &quot;cv&quot;, number = 5)
 model_rf &lt;- train(as.factor(classe) ~ .,
                   trControl = train_control,
                   preProcess = &quot;pca&quot;,
                   method = &quot;rf&quot;,
-                  data = training,
+                  data = training_train,
                   prx=TRUE)</code></pre>
 <pre><code>## Warning in randomForest.default(x, y, mtry = param$mtry, ...): invalid mtry:
 ## reset to within valid range
@@ -462,57 +467,57 @@ model_rf &lt;- train(as.factor(classe) ~ .,
 <pre class="r"><code>print(model_rf)</code></pre>
 <pre><code>## Random Forest 
 ## 
-## 19622 samples
+## 13737 samples
 ##    52 predictor
 ##     5 classes: &#39;A&#39;, &#39;B&#39;, &#39;C&#39;, &#39;D&#39;, &#39;E&#39; 
 ## 
 ## Pre-processing: principal component signal extraction (52), centered
 ##  (52), scaled (52) 
 ## Resampling: Cross-Validated (5 fold) 
-## Summary of sample sizes: 15698, 15696, 15699, 15698, 15697 
+## Summary of sample sizes: 10991, 10989, 10988, 10990, 10990 
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy   Kappa    
-##    2    0.9796141  0.9742076
-##   27    0.9699322  0.9619639
-##   52    0.9702379  0.9623486
+##    2    0.9696429  0.9615913
+##   27    0.9542836  0.9421593
+##   52    0.9539197  0.9416993
 ## 
 ## Accuracy was used to select the optimal model using the largest value.
 ## The final value used for the model was mtry = 2.</code></pre>
 <p>Check the performance on the training set.</p>
-<pre class="r"><code>confusionMatrix(predict(model_rf, training[, -53]), as.factor(training$classe))</code></pre>
+<pre class="r"><code>confusionMatrix(predict(model_rf, training_test[, -53]), as.factor(training_test$classe))</code></pre>
 <pre><code>## Confusion Matrix and Statistics
 ## 
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 5580    0    0    0    0
-##          B    0 3797    0    0    0
-##          C    0    0 3422    0    0
-##          D    0    0    0 3216    0
-##          E    0    0    0    0 3607
+##          A 1660   20    1    0    0
+##          B    3 1089   21    0    3
+##          C    7   23  991   52   10
+##          D    3    5   11  909   11
+##          E    1    2    2    3 1058
 ## 
 ## Overall Statistics
-##                                      
-##                Accuracy : 1          
-##                  95% CI : (0.9998, 1)
-##     No Information Rate : 0.2844     
-##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16  
-##                                      
-##                   Kappa : 1          
-##                                      
-##  Mcnemar&#39;s Test P-Value : NA         
+##                                          
+##                Accuracy : 0.9698         
+##                  95% CI : (0.9651, 0.974)
+##     No Information Rate : 0.2845         
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16      
+##                                          
+##                   Kappa : 0.9617         
+##                                          
+##  Mcnemar&#39;s Test P-Value : 1.001e-09      
 ## 
 ## Statistics by Class:
 ## 
 ##                      Class: A Class: B Class: C Class: D Class: E
-## Sensitivity            1.0000   1.0000   1.0000   1.0000   1.0000
-## Specificity            1.0000   1.0000   1.0000   1.0000   1.0000
-## Pos Pred Value         1.0000   1.0000   1.0000   1.0000   1.0000
-## Neg Pred Value         1.0000   1.0000   1.0000   1.0000   1.0000
-## Prevalence             0.2844   0.1935   0.1744   0.1639   0.1838
-## Detection Rate         0.2844   0.1935   0.1744   0.1639   0.1838
-## Detection Prevalence   0.2844   0.1935   0.1744   0.1639   0.1838
-## Balanced Accuracy      1.0000   1.0000   1.0000   1.0000   1.0000</code></pre>
+## Sensitivity            0.9916   0.9561   0.9659   0.9429   0.9778
+## Specificity            0.9950   0.9943   0.9811   0.9939   0.9983
+## Pos Pred Value         0.9875   0.9758   0.9151   0.9681   0.9925
+## Neg Pred Value         0.9967   0.9895   0.9927   0.9889   0.9950
+## Prevalence             0.2845   0.1935   0.1743   0.1638   0.1839
+## Detection Rate         0.2821   0.1850   0.1684   0.1545   0.1798
+## Detection Prevalence   0.2856   0.1896   0.1840   0.1596   0.1811
+## Balanced Accuracy      0.9933   0.9752   0.9735   0.9684   0.9881</code></pre>
 </div>
 <div id="predicting" class="section level2">
 <h2>4 Predicting</h2>
@@ -521,7 +526,7 @@ model_rf &lt;- train(as.factor(classe) ~ .,
 names(predictions_rf) &lt;- testing$problem_id
 predictions_rf</code></pre>
 <pre><code>##  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
-##  B  A  A  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B 
+##  B  A  C  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B 
 ## Levels: A B C D E</code></pre>
 </div>
 
