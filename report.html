@@ -422,7 +422,8 @@ training &lt;- training %&gt;%
 <h2>3 Modelling</h2>
 <p>The selected algorithm is Random forests.</p>
 <p>After the screening of predictors in Section 2, the number of remaining predictors is still large. To reduce the dimension of feature set, PCA analysis is implemented in this section. And the 5-fold cross-validation is implemented to the training process to avoid overfitting.</p>
-<pre class="r"><code>train_control &lt;- trainControl(method = &quot;cv&quot;, number = 5)
+<pre class="r"><code>set.seed(666)
+train_control &lt;- trainControl(method = &quot;cv&quot;, number = 5)
 model_rf &lt;- train(as.factor(classe) ~ .,
                   trControl = train_control,
                   preProcess = &quot;pca&quot;,
@@ -468,16 +469,50 @@ model_rf &lt;- train(as.factor(classe) ~ .,
 ## Pre-processing: principal component signal extraction (52), centered
 ##  (52), scaled (52) 
 ## Resampling: Cross-Validated (5 fold) 
-## Summary of sample sizes: 15697, 15697, 15697, 15699, 15698 
+## Summary of sample sizes: 15698, 15696, 15699, 15698, 15697 
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy   Kappa    
-##    2    0.9788503  0.9732422
-##   27    0.9701867  0.9622831
-##   52    0.9703394  0.9624772
+##    2    0.9796141  0.9742076
+##   27    0.9699322  0.9619639
+##   52    0.9702379  0.9623486
 ## 
 ## Accuracy was used to select the optimal model using the largest value.
 ## The final value used for the model was mtry = 2.</code></pre>
+<p>Check the performance on the training set.</p>
+<pre class="r"><code>confusionMatrix(predict(model_rf, training[, -53]), as.factor(training$classe))</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 5580    0    0    0    0
+##          B    0 3797    0    0    0
+##          C    0    0 3422    0    0
+##          D    0    0    0 3216    0
+##          E    0    0    0    0 3607
+## 
+## Overall Statistics
+##                                      
+##                Accuracy : 1          
+##                  95% CI : (0.9998, 1)
+##     No Information Rate : 0.2844     
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16  
+##                                      
+##                   Kappa : 1          
+##                                      
+##  Mcnemar&#39;s Test P-Value : NA         
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            1.0000   1.0000   1.0000   1.0000   1.0000
+## Specificity            1.0000   1.0000   1.0000   1.0000   1.0000
+## Pos Pred Value         1.0000   1.0000   1.0000   1.0000   1.0000
+## Neg Pred Value         1.0000   1.0000   1.0000   1.0000   1.0000
+## Prevalence             0.2844   0.1935   0.1744   0.1639   0.1838
+## Detection Rate         0.2844   0.1935   0.1744   0.1639   0.1838
+## Detection Prevalence   0.2844   0.1935   0.1744   0.1639   0.1838
+## Balanced Accuracy      1.0000   1.0000   1.0000   1.0000   1.0000</code></pre>
 </div>
 <div id="predicting" class="section level2">
 <h2>4 Predicting</h2>

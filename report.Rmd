@@ -2,7 +2,9 @@
 title: "Practical Machine Learning - Course Project Report"
 author: "Yuan Liao"
 date: "10/10/2020"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -54,6 +56,7 @@ The selected algorithm is Random forests.
 After the screening of predictors in Section 2, the number of remaining predictors is still large. To reduce the dimension of feature set, PCA analysis is implemented in this section. And the 5-fold cross-validation is implemented to the training process to avoid overfitting.
 
 ```{r model, echo=TRUE}
+set.seed(666)
 train_control <- trainControl(method = "cv", number = 5)
 model_rf <- train(as.factor(classe) ~ .,
                   trControl = train_control,
@@ -62,6 +65,12 @@ model_rf <- train(as.factor(classe) ~ .,
                   data = training,
                   prx=TRUE)
 print(model_rf)
+
+```
+Check the performance on the training set.
+
+```{r confusionMatrix, echo=TRUE}
+confusionMatrix(predict(model_rf, training[, -53]), as.factor(training$classe))
 
 ```
 
