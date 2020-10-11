@@ -1,0 +1,74 @@
+---
+title: "Practical Machine Learning - Course Project Report"
+author: "Yuan Liao"
+date: "10/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1 Introduction
+
+This is the report of modelling and predicting how well a group of people did barbell lifting. For more details on the data used, see HAR Dataset <http://groupware.les.inf.puc-rio.br/har>.
+
+The prediction target is the variable "classe", corresponding to the 5 fashions of the Unilateral Dumbbell Biceps Curl: A, B, C, D, and E where A is the correct one according to the specification while the rest are the ones with different mistakes.
+
+The predictors are potentially computed from the rest of the dataset that contain 159 variables, some of which are from the sensors mounted at arm, belt, forearm, and dumbbell.
+
+```{r libs, echo=TRUE, message=FALSE}
+library(dplyr)
+library(Hmisc)
+library(caret)
+```
+
+## 2 Descriptive analysis
+
+Load training and testing data and take a look at the variables.
+```{r desp, echo=TRUE}
+training <- read.csv('data/pml-training.csv')
+testing <- read.csv('data/pml-testing.csv')
+
+# Remove those columns that have ALL NAs
+testing <- testing[,colSums(is.na(testing))<nrow(testing)]
+colnames(testing)
+```
+To predict the testing set, its non-NA columns are selected except for the irrelevant ones of predicting classe: X, user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window, and num_window.
+
+Correspondingly, the training set is also preprocessed to be in line with the testing set.
+
+```{r preprocess, echo=TRUE}
+testing <- testing %>%
+  select(!c(X, user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window, num_window))
+
+
+training <- training %>%
+  select(!c(X, user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window, num_window)) %>%
+  select(c(colnames(select(testing, !problem_id)), 'classe'))
+```
+
+## 3 Modelling
+The selected algorithm is Random forests.
+
+After the screening of predictors in Section 2, the number of remaining predictors is still large. To reduce the dimension of feature set, PCA analysis is implemented in this section. And the 5-fold cross-validation is implemented to the training process to avoid overfitting.
+
+```{r model, echo=TRUE}
+train_control <- trainControl(method = "cv", number = 5)
+model_rf <- train(as.factor(classe) ~ .,
+                  trControl = train_control,
+                  preProcess = "pca",
+                  method = "rf",
+                  data = training,
+                  prx=TRUE)
+print(model_rf)
+
+```
+
+## 4 Predicting
+This section demonstrates the application of the trained model on the testing set.
+```{r prediction, echo=TRUE}
+predictions_rf <- predict(model_rf, testing[, -53])
+names(predictions_rf) <- testing$problem_id
+predictions_rf
+```
